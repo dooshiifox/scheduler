@@ -3,17 +3,5 @@
 	"schedule_not_found": "Schedule not found!",
 	"schedule_not_found_subtext": "Try click the link sent to you again, or ",
 	"schedule_not_found_create": "create a schedule!",
-	"schedule_member_count": {
-		"selectors": ["plural"],
-		"variants": [
-			{
-				"match": [true],
-				"pattern": "{memberCount} members"
-			},
-			{
-				"match": [false],
-				"pattern": "{memberCount} member"
-			}
-		]
-	}
+	"schedule_member_count": "{memberCount} members"
 }
