@@ -13,7 +13,7 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 
 	const { session, user } = await auth.validate_session_token(sessionToken);
 	if (session) {
-		auth.set_session_token_cookie(event, sessionToken, session.expiresAt);
+		auth.set_session_token_cookie(event, sessionToken, session.expires_at);
 	} else {
 		auth.delete_session_token_cookie(event);
 	}

@@ -64,43 +64,70 @@ export async function update_schedule(schedule_id: string, title: string, descri
 		.where(eq(table.schedule.id, schedule_id));
 	return updated.changes > 0;
 }
-export async function get_schedule_data(schedule_id: string) {
-	return await db
-		.select({
+export async function get_schedule(schedule_id: string) {
+	const schedule = await db.query.schedule.findFirst({
+		where: eq(table.schedule.id, schedule_id),
+		columns: {
+			id: true,
+			title: true,
+			description: true,
+			created_at: true
+		},
+		with: {
 			owner: {
-				username: table.user.username,
-				avatar: table.user.avatar,
-				nickname: table.user.nickname,
-				preferred_nickname: table.schedule_member.nickname,
-				color: table.schedule_member.color
+				columns: {
+					id: true,
+					avatar: true,
+					username: true,
+					nickname: true
+				},
+				with: {
+					schedules: {
+						columns: {
+							nickname: true
+						},
+						where: eq(table.schedule_member.schedule_id, schedule_id)
+					}
+				}
 			},
-			title: table.schedule.title,
-			description: table.schedule.description
-		})
-		.from(table.schedule)
-		.innerJoin(table.user, eq(table.schedule.owner_id, table.user.id))
-		.innerJoin(
-			table.schedule_member,
-			and(
-				eq(table.schedule.owner_id, table.schedule_member.user_id),
-				eq(table.schedule.id, table.schedule_member.schedule_id)
-			)
-		)
-		.where(eq(table.schedule.id, schedule_id));
-}
-export async function get_schedule_timeslots(schedule_id: string) {
-	return await db
-		.select({
-			username: table.user.username,
-			avatar: table.user.avatar,
-			nickname: table.user.nickname,
-			preferred_nickname: table.schedule_member.nickname,
-			color: table.schedule_member.color,
-			available_times: table.schedule_member.available_times
-		})
-		.from(table.schedule_member)
-		.innerJoin(table.user, eq(table.schedule_member.user_id, table.user.id))
-		.where(eq(table.schedule.id, schedule_id));
+			members: {
+				columns: {
+					nickname: true,
+					color: true,
+					available_times: true
+				},
+				with: {
+					user: {
+						columns: {
+							id: true,
+							avatar: true,
+							username: true,
+							nickname: true
+						}
+					}
+				}
+			}
+		}
+	});
+	if (!schedule) return null;
+
+	return {
+		...schedule,
+		owner: {
+			id: schedule.owner.id,
+			username: schedule.owner.username,
+			avatar: schedule.owner.avatar,
+			nickname: schedule.owner.schedules[0]?.nickname ?? schedule.owner.nickname
+		},
+		members: schedule.members.map((member) => ({
+			id: member.user.id,
+			username: member.user.username,
+			avatar: member.user.avatar,
+			nickname: member.nickname ?? member.user.nickname,
+			available_times: member.available_times,
+			color: member.color
+		}))
+	};
 }
 export async function join_schedule(schedule_id: string, user_id: string) {
 	await db.insert(table.schedule_member).values({
@@ -129,6 +156,7 @@ export async function all_schedules(user_id: string) {
 		with: {
 			schedule: {
 				columns: {
+					id: true,
 					description: true,
 					title: true,
 					updated_at: true

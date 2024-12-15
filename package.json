@@ -43,6 +43,7 @@
 		"vitest": "^2.1.8"
 	},
 	"dependencies": {
+		"@floating-ui/dom": "^1.6.12",
 		"@inlang/paraglide-sveltekit": "^0.11.5",
 		"@node-rs/argon2": "^1.8.3",
 		"@oslojs/crypto": "^1.0.1",
